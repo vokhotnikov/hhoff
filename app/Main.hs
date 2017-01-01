@@ -24,7 +24,7 @@ main = do
   args <- getArgs
   withLogin (head args) (args !! 1) $ \sess -> do
     ids <- readIds sess $ drop 3 args
-    mapM_ (downloadResumeForId sess $ args !! 2) $ take 3 ids
+    mapM_ (downloadResumeForId sess $ args !! 2) ids
     mapM_ putStrLn ids
 
 downloadResumeForId :: S.Session -> String -> String -> IO ()
