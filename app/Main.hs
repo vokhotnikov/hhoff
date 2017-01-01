@@ -13,21 +13,38 @@ import Data.List.Split
 import Data.Maybe (fromMaybe)
 import Network.URI
 import Safe
+import System.Environment (getArgs)
 
-import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.ByteString.Lazy.UTF8 as C
 
 main :: IO ()
 main = do
-  r <- loadPage "https://sevastopol.hh.ru/search/resume?area=130&clusters=true&text=C%23&pos=full_text&logic=normal&exp_period=all_time"
-  mapM_ putStrLn r
+  args <- getArgs
+  ids <- readIds args
+  mapM_ downloadResumeForId $ take 3 ids
+  mapM_ putStrLn ids
+
+downloadResumeForId :: String -> IO ()
+downloadResumeForId id = do
+    r <- getPage $ "https://api.hh.ru/resumes/" ++ id
+    writeFile outFileName $ C.toString $ r ^. responseBody
+  where
+    outFileName = id ++ ".json"
+
+readIds :: [String] -> IO [String]
+readIds [] = do
+    ids <- loadPage "https://sevastopol.hh.ru/search/resume?area=130&clusters=true&text=C%23&pos=full_text&logic=normal&exp_period=all_time"
+    writeFile "ids.txt" $ unlines ids
+    return ids
+readIds [file] = lines `fmap` readFile file
 
 loadPage :: String -> IO [String]
 loadPage url = do
     r <- getPage url
-    (links, maybeNext) <- parsePage . C.unpack $ r ^. responseBody
+    (links, maybeNext) <- parsePage . C.toString $ r ^. responseBody
     maybeRest <- loadPage `mapM` (maybeNext >>= resolveRelativeUrl)
-    return $ (extractId `fmap` links) ++ fromMaybe [] maybeRest 
-  where 
+    return $ (extractId `fmap` links) ++ fromMaybe [] maybeRest
+  where
         resolveRelativeUrl :: String -> Maybe String
         resolveRelativeUrl rel = do
           base <- parseURI url
@@ -43,7 +60,7 @@ parsePage body = do
         nextLinks <- runX $ html >>> css "a.HH-Pager-Controls-Next" ! "href"
         return (results, headMay nextLinks)
   where html = parseHtml body
-      
+
 getPage url = do
     res <- getWith opts url
     threadDelay 1234567

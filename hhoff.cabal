@@ -19,6 +19,7 @@ library
   build-depends:       base >= 4.7 && < 5
                      , wreq
                      , network-uri
+                     , utf8-string
                      , safe
                      , split
                      , lens
@@ -37,6 +38,7 @@ executable hhoff-exe
                      , split
                      , wreq
                      , network-uri
+                     , utf8-string
                      , safe
                      , lens
                      , lens-aeson
