@@ -36,7 +36,7 @@ downloadResumeForId sess apiKey id = do
 
 readIds :: S.Session -> [String] -> IO [String]
 readIds sess [] = do
-    ids <- loadPage sess "https://sevastopol.hh.ru/search/resume?area=130&clusters=true&text=C%23&pos=full_text&logic=normal&exp_period=all_time"
+    ids <- loadPage sess "https://hh.ru/search/resume?area=130&clusters=true&text=C%23&pos=full_text&logic=normal&exp_period=all_time"
     writeFile "ids.txt" $ unlines ids
     return ids
 readIds _ [file] = lines `fmap` readFile file
